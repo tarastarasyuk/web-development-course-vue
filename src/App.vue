@@ -10,6 +10,7 @@
             <input
               v-model="ticker"
               v-on:keydown.enter="add()"
+              @input="handleInput()"
               type="text"
               name="wallet"
               id="wallet"
@@ -17,21 +18,16 @@
               placeholder="Например DOGE"
             />
           </div>
-          <div class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap">
-            <span class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
-              BTC
-            </span>
-            <span class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
-              DOGE
-            </span>
-            <span class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
-              BCH
-            </span>
-            <span class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
-              CHD
+          <div v-if="inputTickerSuggestions.length > 0" class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap">
+            <span
+            v-for="suggestion in inputTickerSuggestions" 
+            v-bind:key="suggestion"
+            @click="selectTickerSuggestion(suggestion)"
+            class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
+              {{ suggestion }}
             </span>
           </div>
-          <div class="text-sm text-red-600">Такой тикер уже добавлен</div>
+          <div v-if="!isValidTickerName" class="text-sm text-red-600">Такой тикер уже добавлен</div>
         </div>
       </div>
       <button
@@ -150,14 +146,40 @@ export default {
       ticker: "",
       tickers: [],
       sel : null,
-      graph: []
+      graph: [],
+      isValidTickerName: true,
+      inputTickerSuggestions: [],
     };
+  },
+
+  created: async function () {
+    const f = await fetch(
+          `https://min-api.cryptocompare.com/data/all/coinlist?summary=true`
+          );
+    const data = await f.json();
+
+    this.externalAPIData = Object.entries(data.Data).reduce((newObj, [key, val]) => {
+                                            newObj[key] = val.FullName;
+                                            return newObj;
+                                          }, {});
+  },
+
+  watch: {
+    ticker() {
+      this.isValidTickerName = true;
+    },
   },
 
   methods: {
     add() {
+      const tickerName  = this.ticker.toUpperCase();
+      if (this.tickers.map(entry => entry.name).includes(tickerName)) {
+        this.isValidTickerName = false;
+        return;
+      }
+
       const currentTicker = {
-        name: this.ticker,
+        name: tickerName,
         price: "-"
       };
 
@@ -198,6 +220,35 @@ export default {
       this.sel = selectedTicker,
       this.graph = [];
     },
+
+    handleInput() {
+      if (this.ticker === '') {
+        this.inputTickerSuggestions = []
+        return
+      }
+      
+      const inputTickerSuggestions = Object.entries(this.externalAPIData).filter(([key, value]) => {
+          return key.startsWith(this.ticker) || value.startsWith(this.ticker)
+      })
+      .map(([key]) => key)
+      .slice(0, 4);
+
+      this.inputTickerSuggestions = inputTickerSuggestions
+    },
+
+    selectTickerSuggestion(suggestion) {
+      // FIX workaround for: when selecting suggestion for the second time, without this line before assigning suggestion to
+      // ticker.this - the error message is shown only on the third time of suggestion selecting
+      if (this.tickers.map(entry => entry.name).includes(suggestion)) {
+        this.isValidTickerName = false;
+        return;
+      }
+
+      this.ticker = suggestion
+      this.add()
+    },
+
+
   }
 
 }
