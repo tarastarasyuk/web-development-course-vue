@@ -179,7 +179,7 @@
 // [x] The graph is broken if the values are the same everywhere
 // [x] The graph is still selected when ticker is deleted
 
-import  { loadTickers } from "@/api";
+import { subscribeToTicker, unsubscribeFromTicker } from "@/api";
 
 export default {
   name: 'App',
@@ -218,6 +218,11 @@ export default {
 
     if (tickersData) {
       this.tickers = JSON.parse(tickersData)
+      this.tickers.forEach(ticker => {
+        subscribeToTicker(ticker.name, (newPrice) => {
+          this.updateTicker(ticker.name, newPrice)
+        })
+      })
     }
 
     setInterval(this.updateTickers, 5000)
@@ -271,6 +276,13 @@ export default {
 
 
   methods: {
+    updateTicker(tickerName, price) {
+      this.tickers
+          .filter(t => t.name === tickerName)
+          .forEach(t => {
+            t.price = price;
+          });
+    },
 
     formatPrice(price) {
       if (price === '-') {
@@ -281,18 +293,17 @@ export default {
     },
 
     async updateTickers() {
-      if (!this.tickers.length) {
-        return;
-      }
-
-      const exchangeData = await loadTickers(this.tickers.map(t => t.name));
-
-      this.tickers.forEach(ticker => {
-        const price = exchangeData[ticker.name.toUpperCase()];
-
-        ticker.price = price ?? "-"
-      });
-
+      // if (!this.tickers.length) {
+      //   return;
+      // }
+      //
+      // const exchangeData = await loadTickers(this.tickers.map(t => t.name));
+      //
+      // this.tickers.forEach(ticker => {
+      //   const price = exchangeData[ticker.name.toUpperCase()];
+      //
+      //   ticker.price = price ?? "-"
+      // });
     },
 
     add() {
@@ -303,7 +314,12 @@ export default {
 
       // this.tickers.push(currentTicker)
       this.tickers = [...this.tickers, currentTicker]
+      this.ticker = ''
       this.filter = ''
+
+      subscribeToTicker(currentTicker.name, (newPrice) => {
+        this.updateTicker(currentTicker.name, newPrice)
+      })
     },
 
     handleDelete(ticketToRemove) {
@@ -311,6 +327,8 @@ export default {
       if (this.selectedTicker === ticketToRemove) {
         this.selectedTicker = null
       }
+
+      unsubscribeFromTicker(ticketToRemove.name);
     },
 
     select(selectedTicker) {
