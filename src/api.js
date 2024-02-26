@@ -6,19 +6,38 @@ const socket = new WebSocket(
     `wss://streamer.cryptocompare.com/v2?api_key=${API_KEY}`
 )
 
-const AGGREGATE_INDEX = "5";
+// const AGGREGATE_INDEX = "5";
+const INVALID_SUB = "500";
 
 socket.addEventListener('message', e => {
-    const {TYPE: type, FROMSYMBOL: currency, PRICE: newPrice } = JSON.parse(
+    let {TYPE: type, FROMSYMBOL: currency, PRICE: newPrice, PARAMETER: parameter} = JSON.parse(
         e.data
     );
-    if (type !== AGGREGATE_INDEX || newPrice == undefined) {
+
+    let isValid = true;
+    if (type === INVALID_SUB) {
+        isValid = false;
+        currency = extractTicker(parameter);
+    } else if (type !== INVALID_SUB && newPrice === undefined) {
         return;
     }
 
     const handlers = tickersHandlers.get(currency) ?? [];
-    handlers.forEach(fn => fn(newPrice))
+    handlers.forEach(fn => fn(newPrice, isValid))
 })
+
+function extractTicker(ticker) {
+    if (!ticker) {
+        return null;
+    }
+
+    const match = ticker.match(/5~CCCAGG~(.*)~USD/);
+    if (match) {
+        const ticker = match[1];
+        return ticker;
+    }
+    return null;
+}
 
 function sendToWebSocket(message) {
     const stringifiedMessage = JSON.stringify(message);

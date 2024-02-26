@@ -84,9 +84,11 @@
           :key="t.name"
           @click = "select(t)"
           :class="{
-            'border-4': selectedTicker === t
+            'border-4': selectedTicker === t,
+            'bg-white': !t.isTickerInvalid,
+            'bg-red-100': t.isTickerInvalid
           }"
-          class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
+          class="overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
         >
           <div class="px-4 py-5 sm:p-6 text-center">
             <dt class="text-sm font-medium text-gray-500 truncate">
@@ -219,8 +221,8 @@ export default {
     if (tickersData) {
       this.tickers = JSON.parse(tickersData)
       this.tickers.forEach(ticker => {
-        subscribeToTicker(ticker.name, (newPrice) => {
-          this.updateTicker(ticker.name, newPrice)
+        subscribeToTicker(ticker.name, (newPrice, isValid) => {
+          this.updateTicker(ticker.name, newPrice, isValid)
         })
       })
     }
@@ -276,21 +278,24 @@ export default {
 
 
   methods: {
-    updateTicker(tickerName, price) {
+      updateTicker(tickerName, price, isValid) {
       this.tickers
           .filter(t => t.name === tickerName)
           .forEach(t => {
-            if (t === this.selectedTicker) {
+            t.isTickerInvalid = !isValid;
+            // todo: investigate - we do not need to unsubscribe because received 500
+
+            if (t.isTickerInvalid && t === this.selectedTicker) {
               this.graph.push(price);
             }
+
             t.price = price;
           });
-
     },
 
     formatPrice(price) {
-      if (price === '-') {
-        return price;
+      if (isNaN(price)) {
+        return '-';
       }
 
       return price > 1 ? price.toFixed(2) : price.toPrecision(2);
@@ -321,8 +326,8 @@ export default {
       this.ticker = ''
       this.filter = ''
 
-      subscribeToTicker(currentTicker.name, (newPrice) => {
-        this.updateTicker(currentTicker.name, newPrice)
+      subscribeToTicker(currentTicker.name, (newPrice, isValid) => {
+        this.updateTicker(currentTicker.name, newPrice, isValid)
       })
     },
 
