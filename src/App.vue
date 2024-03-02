@@ -122,7 +122,8 @@
       <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
         {{ selectedTicker.name }} - USD
       </h3>
-      <div class="flex items-end border-gray-600 border-b border-l h-64">
+      <div class="flex items-end border-gray-600 border-b border-l h-64"
+           ref="graph">
         <div
         v-for="(bar, idx) in normalizedGraph"
         :key="idx"
@@ -178,6 +179,7 @@
 // Additional
 // [x] The graph is broken if the values are the same everywhere
 // [x] The graph is still selected when ticker is deleted
+// [ ] When 'resize' is occurs - for some ms the graph view is still not updated(maxGraphElements is invalid), this needs to be fixed
 
 import { subscribeToTicker, unsubscribeFromTicker } from "@/api";
 
@@ -190,6 +192,7 @@ export default {
       tickers: [],
       selectedTicker : null,
       graph: [],
+      maxGraphElements: 1,
       page: 1,
       filter: "",
     };
@@ -274,14 +277,34 @@ export default {
     }
   },
 
+  mounted() {
+    window.addEventListener('resize', this.calculateMaxGraphElements)
+  },
+
+  beforeMount() {
+    window.removeEventListener('resize', this.calculateMaxGraphElements)
+  },
 
   methods: {
+
+    calculateMaxGraphElements() {
+      if (!this.$refs.graph) {
+        return;
+      }
+
+      this.maxGraphElements = this.$refs.graph.clientWidth / 38;
+    },
+
     updateTicker(tickerName, price) {
+
       this.tickers
           .filter(t => t.name === tickerName)
           .forEach(t => {
             if (t === this.selectedTicker) {
               this.graph.push(price);
+              if (this.graph.length > this.maxGraphElements) {
+                this.graph = this.graph.slice(this.graph.length - this.maxGraphElements)
+              }
             }
             t.price = price;
           });
