@@ -181,6 +181,10 @@
 // [x] The graph is broken if the values are the same everywhere
 // [x] The graph is still selected when ticker is deleted
 
+// homework-21:
+// [x] simple invalid subscription handling
+// [ ] invalid subscription handling wit cross conversion (if []->USD fails then []->BTC & BTC->USD else isValid=false)
+
 import { subscribeToTicker, unsubscribeFromTicker } from "@/api";
 
 export default {
