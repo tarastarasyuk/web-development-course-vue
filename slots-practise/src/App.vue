@@ -13,9 +13,10 @@
       @confirm="dangerPopupConfirmed"
       @close="isDangerPopupOpen = false">
     Danger: Are you sure?
-    <template #actions>
-      <input type="text" placeholder="Enter 'Agree'">
-      <!--  FIXME: Confirm event does not work   -->
+    <template #actions="{confirm}">
+<!--      the same logic - different syntax -->
+<!--    <template v-slot:actions="{confirm}">-->
+      <input v-model="agreementInputText" type="text" placeholder="Enter 'Agree'">
       <button @click="confirm">Ok</button>
     </template>
   </PopupWindow>
@@ -23,6 +24,7 @@
 
 <script>
 import PopupWindow from "@/components/PopupWindow.vue";
+import {processDangerRequest} from "@/api";
 
 export default {
   components: {PopupWindow},
@@ -30,7 +32,8 @@ export default {
   data() {
     return {
       isPopupOpen: false,
-      isDangerPopupOpen: false
+      isDangerPopupOpen: false,
+      agreementInputText: ''
     }
   },
 
@@ -41,8 +44,15 @@ export default {
     },
 
     dangerPopupConfirmed() {
-      alert("Danger Confirmed!")
-      this.isDangerPopupOpen = false
+      if (this.agreementInputText === "Agree") {
+        alert("Danger Confirmed!")
+
+        processDangerRequest()
+
+        this.isDangerPopupOpen = false
+      } else {
+        alert("Enter 'Agree' in the input field!")
+      }
     }
   }
 
