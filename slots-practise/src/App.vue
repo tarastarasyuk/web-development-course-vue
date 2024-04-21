@@ -1,5 +1,5 @@
 <template>
-  <button @click="isPopupOpen = true">Open window</button>
+  <button @click="openPopup">Open window</button>
   <PopupWindow
       :is-open="isPopupOpen"
       @confirm="popupConfirmed"
@@ -7,7 +7,7 @@
     Are you sure?
   </PopupWindow>
 
-  <button @click="isDangerPopupOpen = true">Open danger window</button>
+  <button @click="openDangerPopup">Open danger window</button>
   <PopupWindow
       :is-open="isDangerPopupOpen"
       @confirm="dangerPopupConfirmed"
@@ -16,8 +16,8 @@
     <template #actions="{confirm}">
 <!--      the same logic - different syntax -->
 <!--    <template v-slot:actions="{confirm}">-->
-      <input v-model="agreementInputText" type="text" placeholder="Enter 'Agree'">
-      <button @click="confirm">Ok</button>
+      <input v-model="agreementInputText" type="text" :placeholder="confirmationInfoMessage">
+      <button @click="confirm" :disabled="!isConfirmationCorrect">Ok</button>
     </template>
   </PopupWindow>
 </template>
@@ -37,6 +37,8 @@ export default {
     }
   },
 
+  CONFIRMATION_TEXT: 'Agree',
+
   methods: {
     popupConfirmed() {
       alert("Confirmed!")
@@ -44,15 +46,31 @@ export default {
     },
 
     dangerPopupConfirmed() {
-      if (this.agreementInputText === "Agree") {
-        alert("Danger Confirmed!")
+      alert("Danger Confirmed!")
 
-        processDangerRequest()
+      processDangerRequest()
 
-        this.isDangerPopupOpen = false
-      } else {
-        alert("Enter 'Agree' in the input field!")
-      }
+      this.isDangerPopupOpen = false
+    },
+
+    openPopup() {
+      this.isPopupOpen = true
+    },
+
+    openDangerPopup() {
+      this.isDangerPopupOpen = true
+      this.agreementInputText = ''
+    }
+
+  },
+
+  computed: {
+    confirmationInfoMessage() {
+      return `Enter '${this.$options.CONFIRMATION_TEXT}'`
+    },
+
+    isConfirmationCorrect() {
+      return this.agreementInputText === this.$options.CONFIRMATION_TEXT
     }
   }
 
