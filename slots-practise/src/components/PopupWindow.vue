@@ -7,6 +7,8 @@
       <hr />
       <div class="footer">
         <slot name="actions" :close="close" :confirm="confirm">
+          <!-- Content inside slot - means default slot content.
+          It can be overridden by specifying the slot in the invocation place.         -->
           <button @click="close">Cancel</button>
           &nbsp;
           <button @click="confirm">Ok</button>
@@ -23,7 +25,23 @@ export default {
       type: Boolean,
       required: true,
     },
+  },
+
+  emits: {
+    close : value => typeof value === "boolean",
+    confirm : value => typeof value === "boolean",
+  },
+
+  methods: {
+    close() {
+      this.$emit("close")
+    },
+
+    confirm() {
+      this.$emit("confirm")
+    }
   }
+
 }
 </script>
 
