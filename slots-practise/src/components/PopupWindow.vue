@@ -28,8 +28,10 @@ export default {
   },
 
   emits: {
-    close : value => typeof value === "boolean",
-    confirm : value => typeof value === "boolean",
+    // null - because events does not have arguments
+    // (example with arguments - this.$emit("close", someData))
+    close : null,
+    confirm : null,
   },
 
   methods: {
