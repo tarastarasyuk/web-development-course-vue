@@ -93,7 +93,7 @@
               {{ t.name }} - USD
             </dt>
             <dd class="mt-1 text-3xl font-semibold text-gray-900">
-              {{ t.price }}
+              {{ formatPrice(t.price) }}
             </dd>
           </div>
           <div class="w-full border-t border-gray-200"></div>
@@ -178,6 +178,9 @@
 // Additional
 // [x] The graph is broken if the values are the same everywhere
 // [x] The graph is still selected when ticker is deleted
+
+import  { loadTickers } from "@/api";
+
 export default {
   name: 'App',
 
@@ -215,10 +218,11 @@ export default {
 
     if (tickersData) {
       this.tickers = JSON.parse(tickersData)
-      this.tickers.forEach(ticket =>
-          this.subscribeToUpdates(ticket.name))
     }
 
+    setInterval(this.updateTickers, 5000)
+    // the same as setInterval(() => this.updateTickers(), 5000)
+    // automatic operation 'bind' TODO: investigate - why we can loose 'this' in simple js
   },
 
   computed: {
@@ -268,22 +272,27 @@ export default {
 
   methods: {
 
-    subscribeToUpdates(tickerName) {
-      setInterval(async () => {
-        const f = await fetch(
-            `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=4caa95b1312b4ddfca598bf879d242dd3c2c8cc635c161e4e515758bd82717e9`
-        );
-        const data = await f.json();
+    formatPrice(price) {
+      if (price === '-') {
+        return price;
+      }
 
-        const price = parseFloat(data.USD);
-        this.tickers.find(t => t.name === tickerName).price =
-            price > 1 ? price.toFixed(2) : price.toPrecision(2);
+      return price > 1 ? price.toFixed(2) : price.toPrecision(2);
+    },
 
-        if (this.selectedTicker?.name === tickerName) {
-          this.graph.push(price)
-        }
+    async updateTickers() {
+      if (!this.tickers.length) {
+        return;
+      }
 
-      }, 5000);
+      const exchangeData = await loadTickers(this.tickers.map(t => t.name));
+
+      this.tickers.forEach(ticker => {
+        const price = exchangeData[ticker.name.toUpperCase()];
+
+        ticker.price = price ?? "-"
+      });
+
     },
 
     add() {
@@ -295,10 +304,6 @@ export default {
       // this.tickers.push(currentTicker)
       this.tickers = [...this.tickers, currentTicker]
       this.filter = ''
-
-      this.subscribeToUpdates(currentTicker.name)
-
-      this.ticker = ''
     },
 
     handleDelete(ticketToRemove) {
