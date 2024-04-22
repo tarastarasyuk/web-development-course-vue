@@ -2,9 +2,9 @@
   <div v-if="isOpen" class="backdrop" @click="close">
     <div class="popup" @click.stop>
       <h1>Warning!</h1>
-      <hr />
+      <hr/>
       <slot></slot>
-      <hr />
+      <hr/>
       <div class="footer">
         <slot name="actions" :close="close" :confirm="confirm">
           <!-- Content inside slot - means default slot content.
@@ -30,8 +30,17 @@ export default {
   emits: {
     // null - because events does not have arguments
     // (example with arguments - this.$emit("close", someData))
-    close : null,
-    confirm : null,
+    close: null,
+    confirm: null,
+  },
+
+  mounted() {
+    document.addEventListener('keydown', this.handleKeydown)
+  },
+
+  // it is a good practise to clean listeners to not leave rubbish
+  beforeUnmount() {
+    document.removeEventListener('keydown', this.handleKeydown)
   },
 
   methods: {
@@ -41,6 +50,14 @@ export default {
 
     confirm() {
       this.$emit("confirm")
+    },
+
+    handleKeydown() {
+      return e => {
+        if (this.isOpen && e.key === 'Escape') {
+          this.close()
+        }
+      };
     }
   }
 
