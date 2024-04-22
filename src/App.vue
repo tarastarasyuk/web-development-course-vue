@@ -127,8 +127,8 @@
         <div
         v-for="(bar, idx) in normalizedGraph"
         :key="idx"
-        :style="{height: `${bar}%`}"
-        class="bg-purple-800 border w-10"
+        :style="{height: `${bar}%`, width: `${graphElementWidth}px`}"
+        class="bg-purple-800 border"
         ></div>
       </div>
       <button
@@ -193,6 +193,7 @@ export default {
       selectedTicker : null,
       graph: [],
       maxGraphElements: 1,
+      graphElementWidth: 38,
       page: 1,
       filter: "",
     };
@@ -292,7 +293,7 @@ export default {
         return;
       }
 
-      this.maxGraphElements = this.$refs.graph.clientWidth / 38;
+      this.maxGraphElements = this.$refs.graph.clientWidth / this.graphElementWidth;
     },
 
     updateTicker(tickerName, price) {
