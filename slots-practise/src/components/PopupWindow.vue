@@ -20,18 +20,13 @@
 
 <script>
 export default {
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: true,
-    },
-  },
 
-  emits: {
-    // null - because events does not have arguments
-    // (example with arguments - this.$emit("close", someData))
-    close: null,
-    confirm: null,
+  currentPopupController: null,
+
+  data() {
+    return {
+      isOpen : false
+    }
   },
 
   mounted() {
@@ -44,13 +39,6 @@ export default {
   },
 
   methods: {
-    close() {
-      this.$emit("close")
-    },
-
-    confirm() {
-      this.$emit("confirm")
-    },
 
     handleKeydown() {
       return e => {
@@ -58,6 +46,32 @@ export default {
           this.close()
         }
       };
+    },
+
+    open() {
+      // TODO: check theory
+      let resolve;
+      let reject;
+      let popupPromise = new Promise((ok, fail) => {
+        resolve = ok;
+        reject = fail;
+      })
+
+      this.$options.currentPopupController = {resolve, reject};
+      this.isOpen = true
+
+      console.log(      this.$options.currentPopupController )
+      return popupPromise
+    },
+
+    confirm() {
+      this.$options.currentPopupController.resolve(true)
+      this.isOpen = false
+    },
+
+    close() {
+      this.$options.currentPopupController.resolve(false)
+      this.isOpen = false
     }
   }
 
