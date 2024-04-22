@@ -1,17 +1,11 @@
 <template>
   <button @click="openPopup">Open window</button>
-  <PopupWindow
-      :is-open="isPopupOpen"
-      @confirm="popupConfirmed"
-      @close="isPopupOpen = false">
+  <PopupWindow ref="confirmationPopup">
     Are you sure?
   </PopupWindow>
 
   <button @click="openDangerPopup">Open danger window</button>
-  <PopupWindow
-      :is-open="isDangerPopupOpen"
-      @confirm="dangerPopupConfirmed"
-      @close="isDangerPopupOpen = false">
+  <PopupWindow ref="dangerConfirmationPopup">
     Danger: Are you sure?
     <template #actions="{confirm}">
 <!--      the same logic - different syntax -->
@@ -31,8 +25,6 @@ export default {
 
   data() {
     return {
-      isPopupOpen: false,
-      isDangerPopupOpen: false,
       agreementInputText: ''
     }
   },
@@ -40,27 +32,34 @@ export default {
   CONFIRMATION_TEXT: 'Agree',
 
   methods: {
+
+    async openPopup() {
+      const popupResult = await this.$refs.confirmationPopup.open();
+
+      if (popupResult) {
+        this.popupConfirmed()
+      }
+    },
+
     popupConfirmed() {
-      alert("Confirmed!")
-      this.isPopupOpen = false
+      alert("Confirmed")
+    },
+
+    async openDangerPopup() {
+      this.agreementInputText = ''
+
+      const popupResult = await this.$refs.dangerConfirmationPopup.open();
+
+      if (popupResult) {
+        this.dangerPopupConfirmed()
+      }
     },
 
     dangerPopupConfirmed() {
       alert("Danger Confirmed!")
 
       processDangerRequest()
-
-      this.isDangerPopupOpen = false
     },
-
-    openPopup() {
-      this.isPopupOpen = true
-    },
-
-    openDangerPopup() {
-      this.isDangerPopupOpen = true
-      this.agreementInputText = ''
-    }
 
   },
 
