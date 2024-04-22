@@ -3,6 +3,7 @@
     <section>
       <div class="flex">
         <div class="max-w-xs">
+          <h1>{{ page }}gaergaerkognaerokgjaeoigjoaei</h1>
           <label for="wallet" class="block text-sm font-medium text-gray-700"
             >Ticker</label
           >
@@ -184,7 +185,7 @@ export default {
     }
 
     if (windowData.page) {
-      this.page = windowData.page;
+      this.page = Number(windowData.page)
     }
 
     const tickersData = localStorage.getItem('cryptonomicon-list')
@@ -273,6 +274,7 @@ export default {
     },
 
     page() {
+      console.log(this.page)
       window.history.pushState(
           null,
           document.title,
