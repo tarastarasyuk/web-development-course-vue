@@ -361,6 +361,7 @@ export default {
 
     select(selectedTicker) {
       this.selectedTicker = selectedTicker
+      this.$nextTick().then(this.calculateMaxGraphElements)
     },
   },
 
