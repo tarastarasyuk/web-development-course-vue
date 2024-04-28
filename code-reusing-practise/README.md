@@ -3,6 +3,8 @@
 ## Project setup
 ```
 npm install
+
+node proxy/server.js
 ```
 
 ### Compiles and hot-reloads for development
