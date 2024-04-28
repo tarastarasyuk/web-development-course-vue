@@ -4,7 +4,8 @@ export function getPlanets({ page = 1, search} = {}) {
         page,
         search,
     }).forEach(([key, value]) => {
-        if (value !== null) {
+        // != to not send undefined
+        if (value != null) {
             url.searchParams.append(key, value);
         }
     });
