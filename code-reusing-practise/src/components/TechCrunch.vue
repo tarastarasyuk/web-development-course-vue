@@ -24,7 +24,7 @@
   </div>
 </template>
 <script>
-import { getPosts, getCategories } from "../api/techcrunch";
+import { getPosts, getCategories } from "@/api/techcrunch";
 
 export default {
   data() {
