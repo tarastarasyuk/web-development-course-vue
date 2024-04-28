@@ -85,6 +85,10 @@ export default {
       )
     },
 
+    graphRef() { // Exposing the DOM element to parent
+      return this.$refs.graph;
+    },
+
   }
 
 }

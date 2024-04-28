@@ -108,7 +108,7 @@
         v-if="selectedTicker"
         @reset-selected="handleResetSelectedTicketInGraph"
         :selected-ticker="selectedTicker"
-        ref="graph"
+        ref="tickerStatGraphComponent"
         :graph="graph" />
   </div>
 </template>
@@ -250,11 +250,14 @@ export default {
   methods: {
 
     calculateMaxGraphElements() {
-      if (!this.$refs.graph) {
+      // no need to check this.$refs.tickerStatGraphComponent.graphRef, since in positive component was already
+      // displayed, and it is expected this.$refs.tickerStatGraphComponent.graphRef
+      // + using check can cause error because this.$refs.tickerStatGraphComponent.graphRef can be undefined
+      if (!this.$refs.tickerStatGraphComponent) {
         return;
       }
 
-      this.maxGraphElements = this.$refs.graph.clientWidth / this.graphElementWidth;
+      this.maxGraphElements = this.$refs.tickerStatGraphComponent.graphRef.clientWidth / this.graphElementWidth;
     },
 
     updateTicker(tickerName, price) {
